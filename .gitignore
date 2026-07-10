@@ -1,0 +1,10 @@
+.buildozer/
+*.log
+*.pyc
+*.backup
+hostpython3_src/
+wget-log
+bin/
+*.spec.backup
+目标子目录/
+重命名（可选））
