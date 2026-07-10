@@ -1,0 +1,37 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 拉取代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: 安装系统依赖
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev build-essential git wget unzip
+
+    - name: 安装 Buildozer
+      run: |
+        python -m pip install --upgrade pip
+        pip install cython buildozer
+
+    - name: 执行打包
+      run: buildozer android debug
+
+    - name: 上传 APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: mathgame-apk
+        path: ./bin/*.apk
