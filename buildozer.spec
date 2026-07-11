@@ -10,13 +10,14 @@ orientation = portrait
 fullscreen = 1
 osx.kivy_version = 2.2.0
 
-# Android 配置
+[app]
 android.api = 30
 android.minapi = 21
-android.skip_update = True
 android.sdk_path = /usr/local/lib/android/sdk
 android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724
 android.accept_sdk_license = True
+android.skip_update = True
+android.auto_accept_license = True
 android.archs = arm64-v8a, armeabi-v7a
 android.allow_backup = True
 
