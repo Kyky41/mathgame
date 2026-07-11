@@ -27,10 +27,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 手动克隆 python-for-android
+    - name: 手动安装 python-for-android 到 site-packages
       run: |
         git clone https://github.com/kivy/python-for-android.git ~/p4a
-        echo "PYTHONPATH=$HOME/p4a:$PYTHONPATH" >> $GITHUB_ENV
+        SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
+        cp -r ~/p4a/pythonforandroid $SITE_PACKAGES/
+        echo "pythonforandroid 已安装到 $SITE_PACKAGES"
 
     - name: 设置 SDK/NDK 环境并创建符号链接
       run: |
@@ -59,7 +61,7 @@ jobs:
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
         unset ANDROIDNDK
         unset ANDROIDSDK
-        python -m buildozer android debug
+        buildozer android debug
 
     - name: 上传 APK
       uses: actions/upload-artifact@v4
