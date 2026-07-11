@@ -43,7 +43,7 @@ jobs:
         echo "ANDROIDNDK=/home/runner/.buildozer/android/platform/android-ndk-r28c" >> $GITHUB_ENV
         echo "ANDROIDSDK=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
 
-    - name: 接受 SDK 许可证   # ← 新增步骤
+    - name: 接受 SDK 许可证
       run: |
         yes | /home/runner/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
 
