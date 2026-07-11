@@ -10,6 +10,7 @@ orientation = portrait
 fullscreen = 1
 osx.kivy_version = 2.2.0
 
+# Android 配置
 android.api = 30
 android.minapi = 21
 android.skip_update = True
