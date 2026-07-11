@@ -497,4 +497,4 @@ warn_on_root = 1
 p4a.git_submodules = False
 p4a.no_git = True
 p4a.git_clone = False
-android.ndk = 23c
+android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r28c
