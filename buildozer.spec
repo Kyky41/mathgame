@@ -124,7 +124,6 @@ android.sdk = 30
 #android.ndk_api = 21
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-#android.ndk_path =
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
@@ -499,3 +498,4 @@ p4a.extra_args = --host-pip-package=cython --host-pip-package=setuptools --no-gi
 p4a.git_submodules = False
 p4a.no_git = True
 p4a.git_clone = False
+android.ndk = 28c
