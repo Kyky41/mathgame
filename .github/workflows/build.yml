@@ -27,12 +27,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 手动安装 python-for-android 到 site-packages
+    - name: 手动安装 python-for-android
       run: |
         git clone https://github.com/kivy/python-for-android.git ~/p4a
         SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
         cp -r ~/p4a/pythonforandroid $SITE_PACKAGES/
-        echo "pythonforandroid 已安装到 $SITE_PACKAGES"
 
     - name: 设置 SDK/NDK 环境并创建符号链接
       run: |
@@ -55,7 +54,26 @@ jobs:
         yes | $SDKMANAGER --licenses || true
         yes | $SDKMANAGER "build-tools;30.0.3"
 
-    - name: 执行打包
+    - name: 使用 p4a 创建 dist（绕过 Buildozer）
+      run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
+        unset ANDROIDNDK
+        unset ANDROIDSDK
+
+        python -m pythonforandroid.toolchain create \
+          --dist_name=mathgame \
+          --bootstrap=sdl2 \
+          --requirements=hostpython3==3.10.11,python3==3.10.11,cython,pygame==2.5.2 \
+          --arch=arm64-v8a \
+          --arch=armeabi-v7a \
+          --copy-libs \
+          --storage-dir=/home/runner/work/mathgame/mathgame/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a \
+          --ndk-api=21 \
+          --ignore-setup-py \
+          --debug
+
+    - name: 执行 Buildozer 打包（复用已创建的 dist）
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
