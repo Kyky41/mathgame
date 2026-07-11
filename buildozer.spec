@@ -13,7 +13,6 @@ osx.kivy_version = 2.2.0
 # Android 配置
 android.api = 30
 android.minapi = 21
-# android.skip_update = True   # 删除此行，让 Buildozer 自行更新
 android.sdk_path = /usr/local/lib/android/sdk
 android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724
 android.accept_sdk_license = True
