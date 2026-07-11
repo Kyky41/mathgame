@@ -27,30 +27,74 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 强制使用预装 SDK/NDK 并安装 build-tools
+    - name: 🔍 详细诊断 SDK 环境
+      run: |
+        echo "=========================================="
+        echo "      Android SDK 环境诊断"
+        echo "=========================================="
+        echo "当前用户: $(whoami)"
+        echo "HOME: $HOME"
+        echo ""
+        echo "1. 预装 SDK 路径: /usr/local/lib/android/sdk"
+        ls -la /usr/local/lib/android/sdk || echo "目录不存在"
+        echo ""
+        echo "2. 查找所有可能的 sdkmanager:"
+        find /usr/local/lib/android/sdk -name sdkmanager -type f 2>/dev/null
+        echo ""
+        echo "3. 查找所有可能的 build-tools:"
+        find /usr/local/lib/android/sdk -type d -name "build-tools" 2>/dev/null
+        echo ""
+        echo "4. 环境变量检查:"
+        env | grep -E "ANDROID|SDK|NDK" | sort
+        echo "=========================================="
+
+    - name: 配置 SDK 路径并安装 build-tools
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
+
+        # 查找 sdkmanager
+        SDKMANAGER=$(find $ANDROID_HOME -name sdkmanager -type f 2>/dev/null | head -1)
+        if [ -z "$SDKMANAGER" ]; then
+          echo "❌ sdkmanager 未找到！"
+          exit 1
+        else
+          echo "✅ 找到 sdkmanager: $SDKMANAGER"
+          # 如果 sdkmanager 在 cmdline-tools 下，创建符号链接以便 Buildozer 识别
+          if [[ "$SDKMANAGER" == *"cmdline-tools"* ]]; then
+            echo "创建符号链接: $ANDROID_HOME/tools/bin/sdkmanager -> $SDKMANAGER"
+            mkdir -p $ANDROID_HOME/tools/bin
+            ln -sf $SDKMANAGER $ANDROID_HOME/tools/bin/sdkmanager
+          fi
+        fi
+
+        # 设置环境变量
         echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
         unset ANDROIDNDK
         unset ANDROIDSDK
-        SDKMANAGER=$(find $ANDROID_HOME -name sdkmanager -type f 2>/dev/null | head -1)
-        if [ -z "$SDKMANAGER" ]; then
-          SDKMANAGER=$ANDROID_HOME/tools/bin/sdkmanager
-        fi
-        echo "Using sdkmanager: $SDKMANAGER"
-        # 接受所有许可证
+
+        # 接受许可证
+        echo "接受 SDK 许可证..."
         yes | $SDKMANAGER --licenses || true
-        # 检查已安装的 build-tools，若没有则安装 30.0.3
-        if [ ! -d "$ANDROID_HOME/build-tools" ] || [ -z "$(ls -A $ANDROID_HOME/build-tools)" ]; then
-          echo "build-tools 不存在，安装 30.0.3"
+
+        # 检查并安装 build-tools
+        if [ ! -d "$ANDROID_HOME/build-tools" ] || [ -z "$(ls -A $ANDROID_HOME/build-tools 2>/dev/null)" ]; then
+          echo "安装 build-tools;30.0.3"
           yes | $SDKMANAGER "build-tools;30.0.3"
         else
-          echo "build-tools 已存在，跳过安装"
+          echo "build-tools 已存在"
+          ls -la $ANDROID_HOME/build-tools/
         fi
-        # 验证 aidl 存在
-        ls -l $ANDROID_HOME/build-tools/*/aidl || echo "aidl 未找到"
+
+        # 验证 aidl
+        aidl_path=$(find $ANDROID_HOME/build-tools -name aidl -type f 2>/dev/null | head -1)
+        if [ -n "$aidl_path" ]; then
+          echo "✅ aidl 找到: $aidl_path"
+        else
+          echo "❌ aidl 未找到，尝试安装 build-tools;34.0.0"
+          yes | $SDKMANAGER "build-tools;34.0.0"
+        fi
 
     - name: 执行打包
       run: buildozer -v android debug
