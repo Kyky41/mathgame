@@ -27,33 +27,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 配置 Android SDK 并安装 build-tools
+    - name: 接受 SDK 许可证（使用预装 SDK 的 sdkmanager）
       run: |
-        export ANDROID_HOME=/usr/local/lib/android/sdk
-        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
-
-        # 查找 sdkmanager
-        SDKMANAGER=$(find $ANDROID_HOME -name sdkmanager -type f 2>/dev/null | head -1)
-        if [ -z "$SDKMANAGER" ]; then
+        SDK_MANAGER=$(find /usr/local/lib/android/sdk -name sdkmanager -type f 2>/dev/null | head -1)
+        if [ -z "$SDK_MANAGER" ]; then
           echo "sdkmanager not found, trying default path"
-          SDKMANAGER=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
-          if [ ! -f "$SDKMANAGER" ]; then
-            SDKMANAGER=$ANDROID_HOME/tools/bin/sdkmanager
-          fi
+          SDK_MANAGER=/usr/local/lib/android/sdk/tools/bin/sdkmanager
         fi
-        echo "Using sdkmanager: $SDKMANAGER"
+        echo "Using sdkmanager: $SDK_MANAGER"
+        yes | $SDK_MANAGER --licenses || true
 
-        # 接受所有 SDK 许可证
-        yes | $SDKMANAGER --licenses || true
-
-        # 安装 build-tools 37.0.0（包含 aidl）
-        yes | $SDKMANAGER "build-tools;37.0.0"
-
-        # 设置环境变量供后续步骤使用
-        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
-
-    - name: 执行打包
+    - name: 执行打包（Buildozer 将使用预装 SDK/NDK）
       run: |
         unset ANDROIDNDK
         unset ANDROIDSDK
