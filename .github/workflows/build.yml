@@ -40,8 +40,14 @@ jobs:
           SDKMANAGER=$ANDROID_HOME/tools/bin/sdkmanager
         fi
         echo "Using sdkmanager: $SDKMANAGER"
+        # 接受所有许可证
         yes | $SDKMANAGER --licenses || true
-        yes | $SDKMANAGER "build-tools;37.0.0"
+        # 列出可用的 build-tools 版本（调试用）
+        $SDKMANAGER --list | grep build-tools
+        # 安装一个确定存在的版本（30.0.3）
+        yes | $SDKMANAGER "build-tools;30.0.3"
+        # 验证安装
+        ls -l $ANDROID_HOME/build-tools/
 
     - name: 执行打包
       run: buildozer -v android debug
