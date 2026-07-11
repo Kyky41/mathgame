@@ -22,11 +22,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev build-essential git wget unzip
 
-    - name: 安装 Buildozer 和 pythonforandroid
+    - name: 安装 Buildozer
       run: |
         python -m pip install --upgrade pip
         pip install cython buildozer
-        pip install pythonforandroid   # 显式安装
+
+    - name: 手动克隆 python-for-android
+      run: |
+        git clone https://github.com/kivy/python-for-android.git ~/p4a
+        echo "PYTHONPATH=$HOME/p4a:$PYTHONPATH" >> $GITHUB_ENV
 
     - name: 设置 SDK/NDK 环境并创建符号链接
       run: |
