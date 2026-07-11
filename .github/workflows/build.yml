@@ -32,7 +32,6 @@ jobs:
         git clone https://github.com/kivy/python-for-android.git ~/p4a
         SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
         cp -r ~/p4a/pythonforandroid $SITE_PACKAGES/
-        # 安装 p4a 运行时依赖
         pip install appdirs colorama jinja2 sh meson ninja build toml packaging setuptools wheel
 
     - name: 设置 SDK/NDK 环境并创建符号链接
@@ -56,7 +55,7 @@ jobs:
         yes | $SDKMANAGER --licenses || true
         yes | $SDKMANAGER "build-tools;30.0.3"
 
-    - name: 使用 p4a 创建 dist（绕过 Buildozer）
+    - name: 使用 p4a 创建 dist（指定 API 30）
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
@@ -73,7 +72,8 @@ jobs:
           --storage-dir=/home/runner/work/mathgame/mathgame/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a \
           --ndk-api=21 \
           --ignore-setup-py \
-          --debug
+          --debug \
+          --api 30
 
     - name: 执行 Buildozer 打包（复用已创建的 dist）
       run: |
