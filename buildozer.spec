@@ -498,3 +498,4 @@ p4a.git_submodules = False
 p4a.no_git = True
 p4a.git_clone = False
 android.ndk_path = /home/runner/.buildozer/android/platform/android-ndk-r28c
+android.accept_sdk_license = True
