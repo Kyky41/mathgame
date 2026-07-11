@@ -27,40 +27,28 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 诊断环境
+    - name: 手动准备 NDK
       run: |
-        echo "=== 环境诊断 ==="
-        echo "当前用户: $(whoami)"
-        echo "HOME: $HOME"
-        echo "ANDROIDNDK: $ANDROIDNDK"
-        echo "ANDROIDSDK: $ANDROIDSDK"
-        echo "ANDROIDAPI: $ANDROIDAPI"
-        echo "ANDROIDMINAPI: $ANDROIDMINAPI"
-        echo ""
-        echo "=== buildozer.spec 中的关键配置 ==="
-        grep -E "android\.ndk|android\.api|android\.sdk|p4a\." buildozer.spec | grep -v "^#"
-        echo ""
-        echo "=== 检查硬编码路径 ==="
-        grep -n "asu_qin" buildozer.spec || echo "未找到硬编码路径"
-
-    - name: 清除 Android 环境变量
-      run: |
-        unset ANDROIDNDK
-        unset ANDROIDSDK
-        unset ANDROIDAPI
-        unset ANDROIDMINAPI
-        echo "ANDROIDNDK=" >> $GITHUB_ENV
-        echo "ANDROIDSDK=" >> $GITHUB_ENV
-        echo "ANDROIDAPI=" >> $GITHUB_ENV
-        echo "ANDROIDMINAPI=" >> $GITHUB_ENV
-        echo "已清除所有 ANDROID 环境变量"
+        mkdir -p /home/runner/.buildozer/android/platform
+        cd /home/runner/.buildozer/android/platform
+        if [ ! -d "android-ndk-r28c" ]; then
+          echo "下载 NDK..."
+          wget -q https://dl.google.com/android/repository/android-ndk-r28c-linux.zip
+          echo "解压 NDK..."
+          unzip -q android-ndk-r28c-linux.zip
+          rm android-ndk-r28c-linux.zip
+        else
+          echo "NDK 已存在"
+        fi
+        # 设置环境变量供 Buildozer 使用
+        echo "ANDROIDNDK=/home/runner/.buildozer/android/platform/android-ndk-r28c" >> $GITHUB_ENV
+        echo "ANDROIDSDK=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
 
     - name: 执行打包
       run: |
-        export ANDROIDNDK=""
-        export ANDROIDSDK=""
-        export ANDROIDAPI=""
-        export ANDROIDMINAPI=""
+        # 确保环境变量传递
+        export ANDROIDNDK="$ANDROIDNDK"
+        export ANDROIDSDK="$ANDROIDSDK"
         buildozer android debug
 
     - name: 上传 APK
