@@ -43,18 +43,23 @@ jobs:
         echo "ANDROIDNDK=/home/runner/.buildozer/android/platform/android-ndk-r28c" >> $GITHUB_ENV
         echo "ANDROIDSDK=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
 
-    - name: 接受 SDK 许可证（提前接受，确保 build-tools 被安装）
+    - name: 预先安装 build-tools 并接受许可证
       run: |
-        yes | /home/runner/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+        echo y | /home/runner/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "build-tools;37.0.0"
 
-    - name: 执行打包（用 yes 自动接受许可证）
+    - name: 接受所有 SDK 许可证（备用）
+      run: |
+        echo y | /home/runner/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+
+    - name: 执行打包
       run: |
         export ANDROIDNDK="$ANDROIDNDK"
         export ANDROIDSDK="$ANDROIDSDK"
-        yes | buildozer android debug
+        buildozer android debug
 
     - name: 上传 APK
       uses: actions/upload-artifact@v4
       with:
         name: mathgame-apk
         path: ./bin/*.apk
+EOF
