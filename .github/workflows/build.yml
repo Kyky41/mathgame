@@ -56,3 +56,4 @@ jobs:
       with:
         name: mathgame-apk
         path: ./bin/*.apk
+EOF
