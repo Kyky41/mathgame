@@ -40,13 +40,15 @@ jobs:
         else
           echo "NDK 已存在"
         fi
-        # 设置环境变量供 Buildozer 使用
         echo "ANDROIDNDK=/home/runner/.buildozer/android/platform/android-ndk-r28c" >> $GITHUB_ENV
         echo "ANDROIDSDK=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
 
+    - name: 接受 SDK 许可证   # ← 新增步骤
+      run: |
+        yes | /home/runner/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+
     - name: 执行打包
       run: |
-        # 确保环境变量传递
         export ANDROIDNDK="$ANDROIDNDK"
         export ANDROIDSDK="$ANDROIDSDK"
         buildozer android debug
@@ -56,4 +58,3 @@ jobs:
       with:
         name: mathgame-apk
         path: ./bin/*.apk
-EOF
