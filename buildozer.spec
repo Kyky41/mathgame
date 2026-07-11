@@ -126,7 +126,6 @@ android.sdk = 30
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
-#android.sdk_path =
 
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 #android.ant_path =
@@ -498,3 +497,5 @@ p4a.git_submodules = False
 p4a.no_git = True
 p4a.git_clone = False
 android.accept_sdk_license = True
+android.sdk_path = /usr/local/lib/android/sdk
+android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724
