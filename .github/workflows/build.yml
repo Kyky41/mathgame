@@ -27,35 +27,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 手动准备 NDK
+    - name: 清除 Android 环境变量（防止路径冲突）
       run: |
-        mkdir -p /home/runner/.buildozer/android/platform
-        cd /home/runner/.buildozer/android/platform
-        if [ ! -d "android-ndk-r28c" ]; then
-          echo "下载 NDK..."
-          wget -q https://dl.google.com/android/repository/android-ndk-r28c-linux.zip
-          echo "解压 NDK..."
-          unzip -q android-ndk-r28c-linux.zip
-          rm android-ndk-r28c-linux.zip
-        else
-          echo "NDK 已存在"
-        fi
-        echo "ANDROIDNDK=/home/runner/.buildozer/android/platform/android-ndk-r28c" >> $GITHUB_ENV
-        echo "ANDROIDSDK=/home/runner/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+        unset ANDROIDNDK
+        unset ANDROIDSDK
+        echo "ANDROIDNDK=" >> $GITHUB_ENV
+        echo "ANDROIDSDK=" >> $GITHUB_ENV
 
-    - name: 预先安装 build-tools 并接受许可证
-      run: |
-        echo y | /home/runner/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager "build-tools;37.0.0"
-
-    - name: 接受所有 SDK 许可证（备用）
-      run: |
-        echo y | /home/runner/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
-
-    - name: 执行打包
-      run: |
-        export ANDROIDNDK="$ANDROIDNDK"
-        export ANDROIDSDK="$ANDROIDSDK"
-        buildozer android debug
+    - name: 执行打包（Buildozer 会自动下载 SDK/NDK，用 yes 自动接受许可证）
+      run: yes | buildozer android debug
 
     - name: 上传 APK
       uses: actions/upload-artifact@v4
