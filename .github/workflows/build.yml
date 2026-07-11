@@ -27,15 +27,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 清除 Android 环境变量（防止路径冲突）
+    - name: 执行打包（使用预装的 SDK/NDK）
       run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
         unset ANDROIDNDK
         unset ANDROIDSDK
-        echo "ANDROIDNDK=" >> $GITHUB_ENV
-        echo "ANDROIDSDK=" >> $GITHUB_ENV
-
-    - name: 执行打包（Buildozer 会自动下载 SDK/NDK，用 yes 自动接受许可证）
-      run: yes | buildozer android debug
+        buildozer -v android debug
 
     - name: 上传 APK
       uses: actions/upload-artifact@v4
