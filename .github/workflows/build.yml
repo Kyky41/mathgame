@@ -27,21 +27,24 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 接受 SDK 许可证（使用预装 SDK 的 sdkmanager）
+    - name: 强制使用预装 SDK/NDK 并安装 build-tools
       run: |
-        SDK_MANAGER=$(find /usr/local/lib/android/sdk -name sdkmanager -type f 2>/dev/null | head -1)
-        if [ -z "$SDK_MANAGER" ]; then
-          echo "sdkmanager not found, trying default path"
-          SDK_MANAGER=/usr/local/lib/android/sdk/tools/bin/sdkmanager
-        fi
-        echo "Using sdkmanager: $SDK_MANAGER"
-        yes | $SDK_MANAGER --licenses || true
-
-    - name: 执行打包（Buildozer 将使用预装 SDK/NDK）
-      run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
+        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
         unset ANDROIDNDK
         unset ANDROIDSDK
-        buildozer -v android debug
+        SDKMANAGER=$(find $ANDROID_HOME -name sdkmanager -type f 2>/dev/null | head -1)
+        if [ -z "$SDKMANAGER" ]; then
+          SDKMANAGER=$ANDROID_HOME/tools/bin/sdkmanager
+        fi
+        echo "Using sdkmanager: $SDKMANAGER"
+        yes | $SDKMANAGER --licenses || true
+        yes | $SDKMANAGER "build-tools;37.0.0"
+
+    - name: 执行打包
+      run: buildozer -v android debug
 
     - name: 上传 APK
       uses: actions/upload-artifact@v4
