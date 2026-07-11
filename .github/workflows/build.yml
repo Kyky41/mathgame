@@ -27,8 +27,44 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 执行打包
-      run: buildozer -v android debug
+    - name: 执行打包（一站式修复）
+      run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
+        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+        unset ANDROIDNDK
+        unset ANDROIDSDK
+
+        # 找到真正的 sdkmanager
+        REAL_SDKMANAGER=$(find $ANDROID_HOME -name sdkmanager -type f 2>/dev/null | head -1)
+        if [ -z "$REAL_SDKMANAGER" ]; then
+          echo "❌ 未找到 sdkmanager"
+          exit 1
+        fi
+        echo "✅ 找到 sdkmanager: $REAL_SDKMANAGER"
+
+        # 创建 Buildozer 期望的路径（符号链接）
+        mkdir -p $ANDROID_HOME/tools/bin
+        ln -sf $REAL_SDKMANAGER $ANDROID_HOME/tools/bin/sdkmanager
+
+        # 接受所有 SDK 许可证
+        yes | $REAL_SDKMANAGER --licenses || true
+
+        # 安装 build-tools 30.0.3（包含 aidl）
+        yes | $REAL_SDKMANAGER "build-tools;30.0.3"
+
+        # 验证 aidl 是否存在
+        aidl_path=$(find $ANDROID_HOME/build-tools -name aidl -type f 2>/dev/null | head -1)
+        if [ -n "$aidl_path" ]; then
+          echo "✅ aidl 找到: $aidl_path"
+        else
+          echo "⚠️ aidl 未找到，尝试安装 34.0.0"
+          yes | $REAL_SDKMANAGER "build-tools;34.0.0"
+        fi
+
+        # 运行 Buildozer
+        buildozer -v android debug
 
     - name: 上传 APK
       uses: actions/upload-artifact@v4
