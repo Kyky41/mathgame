@@ -27,13 +27,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 清除 Android 环境变量
+    - name: 强制清理路径配置
       run: |
-        unset ANDROIDNDK
-        unset ANDROIDSDK
-        unset ANDROIDAPI
-        unset ANDROIDMINAPI
-        echo "Android env vars cleared"
+        sed -i '/android.ndk_path/d' buildozer.spec
+        sed -i '/android.sdk_path/d' buildozer.spec
+        sed -i '/asu_qin/d' buildozer.spec
+        export ANDROIDNDK=""
+        export ANDROIDSDK=""
+        echo "ANDROIDNDK=" >> $GITHUB_ENV
+        echo "ANDROIDSDK=" >> $GITHUB_ENV
 
     - name: 执行打包
       run: buildozer android debug
