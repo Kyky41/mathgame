@@ -494,8 +494,7 @@ warn_on_root = 1
 #        buildozer --profile demo android debug
 #
 #   Environment variable overrides have priority over profile overrides.
-p4a.extra_args = --host-pip-package=cython --host-pip-package=setuptools --no-git
 p4a.git_submodules = False
 p4a.no_git = True
 p4a.git_clone = False
-android.ndk = 28c
+android.ndk = 23c
