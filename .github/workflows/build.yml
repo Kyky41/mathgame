@@ -42,12 +42,15 @@ jobs:
         echo "Using sdkmanager: $SDKMANAGER"
         # 接受所有许可证
         yes | $SDKMANAGER --licenses || true
-        # 列出可用的 build-tools 版本（调试用）
-        $SDKMANAGER --list | grep build-tools
-        # 安装一个确定存在的版本（30.0.3）
-        yes | $SDKMANAGER "build-tools;30.0.3"
-        # 验证安装
-        ls -l $ANDROID_HOME/build-tools/
+        # 检查已安装的 build-tools，若没有则安装 30.0.3
+        if [ ! -d "$ANDROID_HOME/build-tools" ] || [ -z "$(ls -A $ANDROID_HOME/build-tools)" ]; then
+          echo "build-tools 不存在，安装 30.0.3"
+          yes | $SDKMANAGER "build-tools;30.0.3"
+        else
+          echo "build-tools 已存在，跳过安装"
+        fi
+        # 验证 aidl 存在
+        ls -l $ANDROID_HOME/build-tools/*/aidl || echo "aidl 未找到"
 
     - name: 执行打包
       run: buildozer -v android debug
