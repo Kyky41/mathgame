@@ -27,7 +27,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 执行打包（一站式修复）
+    - name: 设置 SDK/NDK 环境并安装 build-tools
       run: |
         export ANDROID_HOME=/usr/local/lib/android/sdk
         export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
@@ -36,34 +36,66 @@ jobs:
         unset ANDROIDNDK
         unset ANDROIDSDK
 
-        # 找到真正的 sdkmanager
-        REAL_SDKMANAGER=$(find $ANDROID_HOME -name sdkmanager -type f 2>/dev/null | head -1)
-        if [ -z "$REAL_SDKMANAGER" ]; then
-          echo "❌ 未找到 sdkmanager"
+        # 查找 sdkmanager
+        SDKMANAGER=$(find $ANDROID_HOME -name sdkmanager -type f 2>/dev/null | head -1)
+        if [ -z "$SDKMANAGER" ]; then
+          echo "❌ sdkmanager 未找到"
           exit 1
         fi
-        echo "✅ 找到 sdkmanager: $REAL_SDKMANAGER"
+        echo "✅ sdkmanager: $SDKMANAGER"
 
-        # 创建 Buildozer 期望的路径（符号链接）
+        # 创建符号链接
         mkdir -p $ANDROID_HOME/tools/bin
-        ln -sf $REAL_SDKMANAGER $ANDROID_HOME/tools/bin/sdkmanager
+        ln -sf $SDKMANAGER $ANDROID_HOME/tools/bin/sdkmanager
 
-        # 接受所有 SDK 许可证
-        yes | $REAL_SDKMANAGER --licenses || true
+        # 接受许可证
+        yes | $SDKMANAGER --licenses || true
 
-        # 安装 build-tools 30.0.3（包含 aidl）
-        yes | $REAL_SDKMANAGER "build-tools;30.0.3"
+        # 安装 build-tools 30.0.3
+        yes | $SDKMANAGER "build-tools;30.0.3"
 
-        # 验证 aidl 是否存在
-        aidl_path=$(find $ANDROID_HOME/build-tools -name aidl -type f 2>/dev/null | head -1)
-        if [ -n "$aidl_path" ]; then
-          echo "✅ aidl 找到: $aidl_path"
+        # 验证 aidl
+        if [ -f "$ANDROID_HOME/build-tools/30.0.3/aidl" ]; then
+          echo "✅ aidl 已安装"
         else
-          echo "⚠️ aidl 未找到，尝试安装 34.0.0"
-          yes | $REAL_SDKMANAGER "build-tools;34.0.0"
+          echo "❌ aidl 未找到，尝试安装 34.0.0"
+          yes | $SDKMANAGER "build-tools;34.0.0"
         fi
 
-        # 运行 Buildozer
+    - name: 手动运行 p4a create（获取详细错误）
+      run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
+        unset ANDROIDNDK
+        unset ANDROIDSDK
+
+        # 构建 p4a 命令
+        P4A_CMD="python -m pythonforandroid.toolchain create \
+          --dist_name=mathgame \
+          --bootstrap=sdl2 \
+          --requirements=hostpython3==3.10.11,python3==3.10.11,cython,pygame==2.5.2 \
+          --arch=arm64-v8a \
+          --arch=armeabi-v7a \
+          --copy-libs \
+          --storage-dir=/home/runner/work/mathgame/mathgame/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a \
+          --ndk-api=21 \
+          --ignore-setup-py \
+          --debug"
+
+        echo "执行 p4a 创建命令..."
+        $P4A_CMD 2>&1 | tee p4a_output.log
+        if [ ${PIPESTATUS[0]} -ne 0 ]; then
+          echo "p4a 创建失败，查看日志："
+          tail -100 p4a_output.log
+          exit 1
+        fi
+
+    - name: 执行 Buildozer 打包
+      run: |
+        export ANDROID_HOME=/usr/local/lib/android/sdk
+        export ANDROID_NDK_HOME=/usr/local/lib/android/sdk/ndk/27.3.13750724
+        unset ANDROIDNDK
+        unset ANDROIDSDK
         buildozer -v android debug
 
     - name: 上传 APK
