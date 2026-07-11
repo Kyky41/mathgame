@@ -27,11 +27,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install cython buildozer
 
-    - name: 手动安装 python-for-android
+    - name: 手动安装 python-for-android 及其依赖
       run: |
         git clone https://github.com/kivy/python-for-android.git ~/p4a
         SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
         cp -r ~/p4a/pythonforandroid $SITE_PACKAGES/
+        # 安装 p4a 运行时依赖
+        pip install appdirs colorama jinja2 sh meson ninja build toml packaging setuptools wheel
 
     - name: 设置 SDK/NDK 环境并创建符号链接
       run: |
